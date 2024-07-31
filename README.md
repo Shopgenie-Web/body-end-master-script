@@ -1,6 +1,10 @@
 # Duda BodyEnd HTML Master Script
 ## Script for adding future update scripts
 
+The following script should be loaded into the Body End HTML of a Duda template.  It uses the raw URL of the `script-list.json` to gather the URLs of scripts to load, cycling through the array contained in the .json file.
+
+To add future scripts, create a .js file with the necessary script.  Add it's raw URL to the `script-list.json` list, and that's it!
+
 ```
 <!-- Place this in the Body End HTML of your Duda website -->
 <script id="scriptLoader">
