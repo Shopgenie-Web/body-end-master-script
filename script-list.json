@@ -1,0 +1,6 @@
+{
+  "scripts": [
+    "https://raw.githubusercontent.com/SilvaMedal/sg-test-script/main/faq-merge-script.js",
+    "https://raw.githubusercontent.com/SilvaMedal/sg-test-script/main/scaleability-script.js"
+  ]
+}
