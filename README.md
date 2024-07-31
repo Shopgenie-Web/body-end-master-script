@@ -18,7 +18,7 @@
   }
 
   // URL of the JSON file containing the script URLs
-  const jsonUrl = 'https://raw.githubusercontent.com/SilvaMedal/sg-test-script/main/script-list.json';
+  const jsonUrl = 'https://raw.githubusercontent.com/Shopgenie-Web/body-end-master-script/main/script-list.json';
 
   // Function to fetch and load scripts
   function fetchAndLoadScripts() {
