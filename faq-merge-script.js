@@ -26,11 +26,13 @@
       }
     });
 
-    // Create a new script tag for the combined FAQ schema
-    const newScript = document.createElement("script");
-    newScript.type = "application/ld+json";
-    newScript.text = JSON.stringify(combinedFAQSchema);
-    document.head.appendChild(newScript);
+    // Create a new script tag for the combined FAQ schema, if one exists
+    if (combinedFAQSchema.mainEntity.length > 0) {
+      const newScript = document.createElement("script");
+      newScript.type = "application/ld+json";
+      newScript.text = JSON.stringify(combinedFAQSchema);
+      document.head.appendChild(newScript);
+    }
   }
 
   // Execute the merging function on every page
