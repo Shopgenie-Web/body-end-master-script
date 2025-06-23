@@ -1,83 +1,72 @@
 (function () {
 
-  /* ---------- core merge routine ---------- */
+  /* ------------ core merge ------------ */
   function mergeFAQSchemas() {
-    const existingCombo = document.getElementById('combined-faq-schema');
-    const sourceScripts = Array.from(
+    const existing = document.getElementById('combined-faq-schema');
+    const sources  = Array.from(
       document.querySelectorAll(
         'script[type="application/ld+json"]:not([data-faq-processed])'
       )
-    ).filter(s => s.id !== 'combined-faq-schema');   // ignore our own output
+    ).filter(s => s.id !== 'combined-faq-schema');
 
-    if (!sourceScripts.length) return;               // nothing new to do
+    if (!sources.length) return;
 
     const combined = {
       "@context": "https://schema.org",
-      "@type"   : "FAQPage",
+      "@type":    "FAQPage",
       mainEntity: []
     };
 
-    sourceScripts.forEach(script => {
+    sources.forEach(s => {
       try {
-        const data = JSON.parse(script.textContent);
-
-        /* Normalise possible structures: direct object or @graph array */
+        const data  = JSON.parse(s.textContent);
         const nodes = Array.isArray(data?.['@graph']) ? data['@graph'] : [data];
 
-        nodes.forEach(node => {
-          const type = (node['@type'] || '').toLowerCase();
-          if (type === 'faqpage' && Array.isArray(node.mainEntity)) {
-            combined.mainEntity.push(...node.mainEntity);
+        nodes.forEach(n => {
+          if ((n['@type'] || '').toLowerCase() === 'faqpage' &&
+              Array.isArray(n.mainEntity)) {
+            combined.mainEntity.push(...n.mainEntity);
           }
         });
-
       } catch (e) {
-        console.warn('Bad FAQ JSON‑LD skipped →', e);
+        console.warn('FAQ JSON‑LD parse error', e);
       }
 
-      /* Mark this script so we don't process it again */
-      script.dataset.faqProcessed = 'true';
-      /* Leave it in place until after we safely parse it, then remove */
-      script.remove();
+      s.dataset.faqProcessed = 'y';
+      s.remove();
     });
 
-    if (!combined.mainEntity.length) return;         // nothing valid was found
+    if (!combined.mainEntity.length) return;
 
-    /* Update existing combo node or add a new one */
-    const target = existingCombo || document.createElement('script');
-    target.type  = 'application/ld+json';
-    target.id    = 'combined-faq-schema';
-    target.text  = JSON.stringify(combined);
+    const out = existing || document.createElement('script');
+    out.id    = 'combined-faq-schema';
+    out.type  = 'application/ld+json';
+    out.text  = JSON.stringify(combined);
 
-    if (!existingCombo) document.head.appendChild(target);
+    if (!existing) document.head.appendChild(out);
   }
 
-
-  /* ---------- run once after full load ---------- */
-  window.addEventListener('load', () => {
-    mergeFAQSchemas();
-
-    /* ---------- watch for late‑injected FAQ scripts ---------- */
-    const debouncedMerge = debounce(mergeFAQSchemas, 250);
-    const observer = new MutationObserver(muts => {
-      for (const m of muts) {
-        if ([...m.addedNodes].some(n =>
-              n.nodeType === 1 &&
-              n.matches?.('script[type="application/ld+json"]')
-            )) {
-          debouncedMerge();
-          break;
-        }
+  /* ------------ observer now, not later ------------ */
+  const debounced = debounce(mergeFAQSchemas, 150);
+  const obs = new MutationObserver(muts => {
+    for (const m of muts) {
+      if ([...m.addedNodes].some(n =>
+           n.nodeType === 1 &&
+           n.matches?.('script[type="application/ld+json"]'))) {
+        debounced();
+        break;
       }
-    });
-
-    observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
   });
 
+  /* Observe ASAP so blocks inserted during initial render are caught */
+  obs.observe(document.documentElement, { childList: true, subtree: true });
 
-  /* ---------- simple debounce helper ---------- */
-  function debounce(fn, wait) {
-    let t; return () => { clearTimeout(t); t = setTimeout(fn, wait); };
+  /* One last safety pass at window load */
+  window.addEventListener('load', mergeFAQSchemas);
+
+  /* tiny debounce helper */
+  function debounce(fn, ms) {
+    let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); };
   }
-
 })();
