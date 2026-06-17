@@ -18,6 +18,7 @@
     };
 
     sources.forEach(s => {
+      let hadFaq = false;
       try {
         const data  = JSON.parse(s.textContent);
         const nodes = Array.isArray(data?.['@graph']) ? data['@graph'] : [data];
@@ -26,6 +27,7 @@
           if ((n['@type'] || '').toLowerCase() === 'faqpage' &&
               Array.isArray(n.mainEntity)) {
             combined.mainEntity.push(...n.mainEntity);
+            hadFaq = true;
           }
         });
       } catch (e) {
@@ -33,7 +35,7 @@
       }
 
       s.dataset.faqProcessed = 'y';
-      s.remove();
+      if (hadFaq) s.remove();   // only remove cards we actually harvested
     });
 
     if (!combined.mainEntity.length) return;
